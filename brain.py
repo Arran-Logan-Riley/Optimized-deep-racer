@@ -1,16 +1,13 @@
-def reward_function(params):
-    '''
-    Example of rewarding the agent to follow center line
-    '''
-    
-    # Read input parameters
-    track_width = params['track_width']
-    distance_from_center = params['distance_from_center']
-    # x_cords = params["x"]
-    # y_cords = params["y"]
+# Place import statement outside of function (supported libraries: math, random, numpy, scipy, and shapely)
+# Example imports of available libraries
+#
+# import math
+# import random
+# import numpy
+# import scipy
+# import shapely
 
-x_cords = 2.61751276
-y_cords = 0.75992145
+import math
 
 optimizedTrackCords =   [[2.88738855, 0.72646774],
        [3.16759122, 0.70478649],
@@ -84,6 +81,7 @@ optimizedTrackCords =   [[2.88738855, 0.72646774],
        [2.61751276, 0.75992145],
        [2.88738855, 0.72646774]]
 
+
 def calcEuclideanDistanceForAllWayPoints(wayPoints, x, y):
     returnSet = []
     a = 0
@@ -98,9 +96,49 @@ def calcEuclideanDistanceForAllWayPoints(wayPoints, x, y):
         returnSet.append(c)
     #returns the cloest way point, current waypoint and the current euclidean distance to the closest waypoint
     clostestWayPoint = returnSet.index(min(returnSet)) +1
-    return [returnSet.index(min(returnSet)),min(returnSet) , clostestWayPoint]
-    
-    
-print(calcEuclideanDistanceForAllWayPoints(optimizedTrackCords, x_cords, y_cords))
+    return [returnSet.index(min(returnSet)), min(returnSet) , clostestWayPoint]
 
-#return float(reward)
+
+def reward_function(params):
+    '''
+    Reward function to reward the bot to follow the optimal race line
+    '''
+    
+    # Read input parameters
+    track_width = params['track_width']
+    heading = params['heading']
+    distance_from_center = params['distance_from_center']
+    x_cords = params["x"]
+    y_cords = params["y"]
+    wheels_on_track = params['all_wheels_on_track']
+    reward = 1.0
+
+    wayPointData = calcEuclideanDistanceForAllWayPoints(optimizedTrackCords, x_cords, y_cords)
+
+    print(calcEuclideanDistanceForAllWayPoints(optimizedTrackCords, x_cords, y_cords))
+
+    prev_point = wayPointData[1]
+    next_point = wayPointData[2]
+
+    print(prev_point, optimizedTrackCords[next_point])
+
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+    track_direction = math.atan2(next_point, prev_point)
+    # Convert to degree
+    track_direction = math.degrees(track_direction)
+
+
+    # Calculate the difference between the track direction and the heading direction of the car
+    direction_diff = abs(track_direction - heading)
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
+
+    # Penalize the reward if the difference is too large
+    DIRECTION_THRESHOLD = 10.0
+    if direction_diff > DIRECTION_THRESHOLD:
+        reward *= 0.5
+
+    if(wheels_on_track == True):
+        reward = 1e-3
+
+    return float(reward)
