@@ -138,7 +138,7 @@ def reward_function(params):
     if direction_diff > DIRECTION_THRESHOLD:
         reward *= 0.5
 
-    if(wheels_on_track == True):
+    if(wheels_on_track == False):
         reward = 1e-3
 
     return float(reward)
